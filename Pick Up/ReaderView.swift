@@ -403,6 +403,7 @@ struct ReaderView: View {
                     playbackButtons
                     Spacer(minLength: 8)
                     speechOptions
+                    taskButton
                     continuationButton
                     clearButton
                 }
@@ -416,6 +417,7 @@ struct ReaderView: View {
                     HStack(spacing: 10) {
                         speechOptions
                         Spacer(minLength: 4)
+                        taskButton
                         continuationButton
                         clearButton
                     }
@@ -505,6 +507,13 @@ struct ReaderView: View {
             viewModel.saveReadingContinuationCard()
         }
         .help("保存当前阅读位置和下一步")
+    }
+
+    private var taskButton: some View {
+        Button("转为任务", systemImage: "square.and.pencil") {
+            viewModel.prepareTaskFromReading(selected: selectedText)
+        }
+        .help("把当前段落或选中文字变成可开始的任务")
     }
 
     private func speakCurrent() {

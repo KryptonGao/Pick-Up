@@ -2,9 +2,15 @@ import SwiftUI
 
 struct TaskWorkbenchView: View {
     @ObservedObject var viewModel: TaskWorkspaceViewModel
+    let appViewModel: AppViewModel?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var isTaskDescriptionFocused: Bool
     @State private var compactShowsDetail = false
+
+    init(viewModel: TaskWorkspaceViewModel, appViewModel: AppViewModel? = nil) {
+        self.viewModel = viewModel
+        self.appViewModel = appViewModel
+    }
 
     var body: some View {
         Group {
@@ -60,7 +66,7 @@ struct TaskWorkbenchView: View {
                         .padding(.horizontal, 14)
                         .frame(height: 42)
                         .background(PickUpTheme.surface)
-                        TaskDetailView(viewModel: viewModel, task: task)
+                        TaskDetailView(viewModel: viewModel, appViewModel: appViewModel, task: task)
                     }
                 } else {
                     taskListPane
@@ -155,7 +161,7 @@ struct TaskWorkbenchView: View {
     @ViewBuilder
     private var taskDetailPane: some View {
         if let task = viewModel.selectedTask {
-            TaskDetailView(viewModel: viewModel, task: task)
+            TaskDetailView(viewModel: viewModel, appViewModel: appViewModel, task: task)
         } else {
             VStack(spacing: 16) {
                 PickUpIconBadge(symbol: "figure.step.training", color: PickUpTheme.coral, size: 68)
@@ -393,6 +399,7 @@ private struct DraftStepEditor: View {
 
 private struct TaskDetailView: View {
     @ObservedObject var viewModel: TaskWorkspaceViewModel
+    let appViewModel: AppViewModel?
     let task: TaskItem
 
     var body: some View {
@@ -432,6 +439,12 @@ private struct TaskDetailView: View {
             Spacer()
             if task.status == .paused {
                 Button("继续任务") { viewModel.resumeTask() }
+            }
+            if let documentID = appViewModel?.relatedReadingDocumentID(for: task.id) {
+                Button("打开相关阅读", systemImage: "text.book.closed") {
+                    appViewModel?.openReadingDocument(documentID)
+                }
+                .help("回到创建这个任务时的阅读位置")
             }
             Menu {
                 Button("保存继续卡片…") { viewModel.requestContinuationCard() }

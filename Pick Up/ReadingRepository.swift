@@ -5,6 +5,7 @@ import SwiftData
 protocol ReadingRepositoryProtocol: AnyObject {
     func loadActive() throws -> ReadingDocument?
     func activate(id: UUID) throws -> ReadingDocument?
+    func document(id: UUID) throws -> ReadingDocument?
     func replace(with document: ReadingDocument) throws
     func save() throws
     func clear() throws
@@ -35,6 +36,10 @@ final class ReadingRepository: ReadingRepositoryProtocol {
         selected.updatedAt = .now
         try context.save()
         return selected
+    }
+
+    func document(id: UUID) throws -> ReadingDocument? {
+        try context.fetch(FetchDescriptor<ReadingDocument>()).first(where: { $0.id == id })
     }
 
     func replace(with document: ReadingDocument) throws {
