@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="420" viewBox="0 0 1200 420"
+     role="img" aria-labelledby="title desc">
+  <title id="title">Pick Up：阅读与行动工作台</title>
+  <desc id="desc">一个 macOS 工作台，把主动选中的文字和模糊任务整理成可阅读、可专注、可继续的下一步。</desc>
+
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1200" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBFAFF"/>
+      <stop offset="1" stop-color="#F2F8F7"/>
+    </linearGradient>
+    <linearGradient id="action" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFD69F"/>
+      <stop offset="1" stop-color="#FF9C82"/>
+    </linearGradient>
+    <linearGradient id="indigo" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#7468F2"/>
+      <stop offset="1" stop-color="#4F56C8"/>
+    </linearGradient>
+    <clipPath id="canvas-clip">
+      <rect x="0" y="0" width="1200" height="420" rx="32"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1200" height="420" rx="32" fill="url(#canvas)"/>
+
+  <g clip-path="url(#canvas-clip)">
+    <circle cx="1116" cy="-12" r="250" fill="#7468F2" fill-opacity="0.08"/>
+    <circle cx="1010" cy="425" r="190" fill="#2E9FB3" fill-opacity="0.10"/>
+    <path d="M614 74C718 35 760 82 834 54C919 22 1025 38 1194 12" fill="none" stroke="#7468F2" stroke-opacity="0.10" stroke-width="2"/>
+    <path d="M615 383C731 339 767 394 860 363C951 333 1062 365 1200 314" fill="none" stroke="#2E9FB3" stroke-opacity="0.16" stroke-width="2"/>
+  </g>
+
+  <g id="title-block" transform="translate(64 0)" fill="#20213A">
+    <text x="0" y="58" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" letter-spacing="2.2" fill="#55566D">MACOS WORKBENCH  /  READING + ACTION</text>
+    <text x="0" y="143" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="78" font-weight="700" letter-spacing="-3">Pick Up</text>
+    <text x="2" y="192" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="600">把选中的文字和模糊任务，</text>
+    <text x="2" y="230" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="600">变成可以马上开始的下一步。</text>
+
+    <rect x="0" y="278" width="492" height="1" fill="#D8D7E5"/>
+    <text x="0" y="318" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" fill="#55566D">SELECT</text>
+    <path d="M84 312H112" stroke="#7468F2" stroke-width="2" stroke-linecap="round"/>
+    <text x="126" y="318" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" fill="#55566D">CONFIRM</text>
+    <path d="M232 312H260" stroke="#7468F2" stroke-width="2" stroke-linecap="round"/>
+    <text x="274" y="318" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" fill="#55566D">FOCUS</text>
+    <path d="M344 312H372" stroke="#7468F2" stroke-width="2" stroke-linecap="round"/>
+    <text x="386" y="318" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" fill="#55566D">RESUME</text>
+
+    <rect x="0" y="355" width="132" height="34" rx="17" fill="#ECEBFF"/>
+    <text x="66" y="378" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="700" fill="#4F56C8">LOCAL-FIRST</text>
+    <rect x="144" y="355" width="150" height="34" rx="17" fill="#E1F6F1"/>
+    <text x="219" y="378" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16" font-weight="700" fill="#198B8D">SWIFTUI / SWIFTDATA</text>
+    <rect x="306" y="355" width="168" height="34" rx="17" fill="#FFF0E6"/>
+    <text x="390" y="378" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16" font-weight="700" fill="#C86957">OPTIONAL BYOK AI</text>
+  </g>
+
+  <g id="workflow-proof" transform="translate(638 0)">
+    <path d="M42 85C42 68 56 54 73 54H466C483 54 497 68 497 85V314C497 331 483 345 466 345H73C56 345 42 331 42 314Z" fill="#FFFFFF" fill-opacity="0.88" stroke="#D9D9E8" stroke-width="2"/>
+
+    <g id="source-page" transform="translate(74 86)">
+      <text x="0" y="0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" fill="#66677C">CURRENT TEXT</text>
+      <circle cx="7" cy="37" r="7" fill="#7468F2" fill-opacity="0.72"/>
+      <rect x="28" y="30" width="274" height="14" rx="7" fill="#6766C9" fill-opacity="0.42"/>
+      <circle cx="7" cy="70" r="7" fill="#7468F2" fill-opacity="0.38"/>
+      <rect x="28" y="63" width="210" height="14" rx="7" fill="#6766C9" fill-opacity="0.27"/>
+      <rect x="0" y="101" width="336" height="58" rx="29" fill="#F1F0FF" stroke="#716BE4" stroke-opacity="0.48" stroke-width="2" stroke-dasharray="12 10"/>
+      <text x="168" y="137" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="21" font-weight="700" fill="#5A5AC4">已确认 · 第 1 / 3 段</text>
+      <circle cx="7" cy="192" r="7" fill="#2E9FB3" fill-opacity="0.45"/>
+      <rect x="28" y="185" width="250" height="14" rx="7" fill="#2E9FB3" fill-opacity="0.25"/>
+    </g>
+
+    <path d="M252 253C252 277 274 279 289 261C305 242 319 233 340 226" fill="none" stroke="#7468F2" stroke-width="3" stroke-linecap="round"/>
+    <path d="M334 218L344 226L331 230" fill="none" stroke="#7468F2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <g id="next-action" transform="rotate(-3 245 97)">
+      <rect x="99" y="36" width="318" height="106" rx="28" fill="#B66F68" fill-opacity="0.12" transform="translate(0 8)"/>
+      <rect x="99" y="28" width="318" height="106" rx="28" fill="url(#action)"/>
+      <circle cx="137" cy="81" r="20" fill="#FFFFFF" fill-opacity="0.96"/>
+      <path d="M128 81L135 88L148 73" fill="none" stroke="#DF7869" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="174" y="69" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17" font-weight="700" fill="#8E554D">NEXT ACTION</text>
+      <text x="174" y="101" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="24" font-weight="700" fill="#593E48">先做一个可见步骤</text>
+    </g>
+
+    <g id="focus-card" transform="translate(310 281)">
+      <rect x="0" y="0" width="188" height="67" rx="22" fill="#DDF5F0" stroke="#2E9FB3" stroke-opacity="0.34" stroke-width="2"/>
+      <circle cx="31" cy="33" r="15" fill="#2E9FB3" fill-opacity="0.18"/>
+      <path d="M31 25V34L37 38" fill="none" stroke="#198B8D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="57" y="29" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" font-weight="700" fill="#198B8D">FOCUS</text>
+      <text x="57" y="51" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="23" font-weight="700" fill="#17696E">25:00</text>
+    </g>
+
+    <g id="resume-card" transform="translate(52 363)">
+      <circle cx="8" cy="8" r="7" fill="#7468F2"/>
+      <text x="27" y="14" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" fill="#55566D">CONTINUATION CARD</text>
+      <path d="M287 8H409" stroke="#7468F2" stroke-width="2" stroke-linecap="round"/>
+      <path d="M400 1L409 8L400 15" fill="none" stroke="#7468F2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <rect x="1" y="1" width="1198" height="418" rx="31" fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2"/>
+</svg>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <title>Pick Up app icon</title>
+  <desc>A calm indigo app icon showing one warm action card lifted from a page of text, symbolizing focused reading, the next small step, and easy task resumption.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="142" y1="102" x2="880" y2="944" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7468F2"/>
+      <stop offset="0.52" stop-color="#5B5BDB"/>
+      <stop offset="1" stop-color="#2E9FB3"/>
+    </linearGradient>
+
+    <radialGradient id="topGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(514 146) rotate(90) scale(540 610)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.25"/>
+      <stop offset="0.7" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="page" x1="264" y1="342" x2="746" y2="770" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F1FF"/>
+    </linearGradient>
+
+    <linearGradient id="liftedCard" x1="332" y1="214" x2="708" y2="367" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD58F"/>
+      <stop offset="1" stop-color="#FF9F82"/>
+    </linearGradient>
+
+    <linearGradient id="liftTrail" x1="512" y1="514" x2="512" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFBA88" stop-opacity="0"/>
+      <stop offset="0.38" stop-color="#FFBA88" stop-opacity="0.46"/>
+      <stop offset="1" stop-color="#FFD79B" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <filter id="iconShadow" x="4" y="10" width="1016" height="1026" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#1E276D" flood-opacity="0.34"/>
+    </filter>
+
+    <filter id="pageShadow" x="164" y="292" width="696" height="584" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="25" stdDeviation="30" flood-color="#283077" flood-opacity="0.30"/>
+    </filter>
+
+    <filter id="cardShadow" x="264" y="159" width="496" height="280" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#38316C" flood-opacity="0.28"/>
+    </filter>
+
+    <clipPath id="iconClip">
+      <rect x="40" y="40" width="944" height="944" rx="220"/>
+    </clipPath>
+  </defs>
+
+  <g filter="url(#iconShadow)">
+    <rect x="40" y="40" width="944" height="944" rx="220" fill="url(#background)"/>
+  </g>
+
+  <g clip-path="url(#iconClip)">
+    <rect x="40" y="40" width="944" height="944" rx="220" fill="url(#topGlow)"/>
+
+    <!-- Quiet ambient shapes keep the background dimensional without competing with the symbol. -->
+    <circle cx="178" cy="802" r="230" fill="#55D4C2" fill-opacity="0.12"/>
+    <circle cx="910" cy="176" r="248" fill="#BDB4FF" fill-opacity="0.12"/>
+    <path d="M111 768C257 670 299 811 431 742C569 670 626 761 744 692C837 638 906 648 1002 591" stroke="#FFFFFF" stroke-opacity="0.09" stroke-width="30" stroke-linecap="round"/>
+
+    <!-- The page represents dense source material and saved context. -->
+    <g filter="url(#pageShadow)">
+      <rect x="222" y="345" width="580" height="430" rx="104" fill="url(#page)"/>
+    </g>
+
+    <!-- A soft vacancy shows where the focused paragraph was picked up from. -->
+    <rect x="301" y="456" width="422" height="88" rx="44" fill="#665FE0" fill-opacity="0.09"/>
+    <rect x="316" y="471" width="392" height="58" rx="29" stroke="#6A63DA" stroke-opacity="0.23" stroke-width="6" stroke-dasharray="18 16"/>
+
+    <!-- Remaining paragraphs: low-contrast, calm, and deliberately simple at small sizes. -->
+    <circle cx="332" cy="611" r="18" fill="#5B57C8" fill-opacity="0.64"/>
+    <rect x="373" y="596" width="286" height="30" rx="15" fill="#5B57C8" fill-opacity="0.50"/>
+    <circle cx="332" cy="682" r="18" fill="#5B57C8" fill-opacity="0.38"/>
+    <rect x="373" y="667" width="212" height="30" rx="15" fill="#5B57C8" fill-opacity="0.32"/>
+
+    <!-- The rising trail makes “pick up / continue” legible without a forceful arrow. -->
+    <path d="M512 505C512 457 493 430 493 395C493 371 500 351 512 330" stroke="url(#liftTrail)" stroke-width="24" stroke-linecap="round"/>
+
+    <!-- One warm card is the selected paragraph, the current step, and the place to resume. -->
+    <g filter="url(#cardShadow)" transform="rotate(-3 512 286)">
+      <rect x="312" y="210" width="400" height="152" rx="76" fill="url(#liftedCard)"/>
+      <circle cx="374" cy="286" r="23" fill="#FFFFFF" fill-opacity="0.96"/>
+      <rect x="420" y="266" width="222" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.94"/>
+      <rect x="420" y="318" width="130" height="13" rx="6.5" fill="#FFFFFF" fill-opacity="0.48"/>
+      <path d="M365 286L373 294L388 277" stroke="#E68672" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- A subtle lower tab suggests that the context is saved and can be resumed. -->
+    <path d="M455 774H569V835C569 849 552 856 542 846L512 816L482 846C472 856 455 849 455 835V774Z" fill="#FFFFFF" fill-opacity="0.23"/>
+  </g>
+
+  <!-- Fine inner highlight helps the rounded-square silhouette remain crisp on dark desktops. -->
+  <rect x="47" y="47" width="930" height="930" rx="213" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="14"/>
+</svg>
