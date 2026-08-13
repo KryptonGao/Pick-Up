@@ -47,6 +47,7 @@ final class TaskWorkspaceViewModel: ObservableObject {
 
     let aiSettings: AISettingsStore
     var onContinuationCardRequested: ((ContinuationCardDraft) -> Void)?
+    var onTaskCreated: ((TaskItem) -> Void)?
 
     private let repository: TaskRepositoryProtocol
     private let localBreakdown: TaskBreakdownProviding
@@ -219,6 +220,7 @@ final class TaskWorkspaceViewModel: ObservableObject {
             draftSteps = []
             clarificationQuestion = nil
             clarificationAnswer = ""
+            onTaskCreated?(task)
         } catch {
             errorMessage = "任务没有保存成功，当前步骤仍然保留在编辑器中。"
         }

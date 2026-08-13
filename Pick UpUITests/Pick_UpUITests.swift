@@ -175,6 +175,74 @@ final class Pick_UpUITests: XCTestCase {
     }
 
     @MainActor
+    func testStartHereShowsCardAndResumesTask() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing", "--skip-onboarding", "--sample-relay"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["开始这里"].firstMatch.waitForExistence(timeout: 3), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["我在做什么"].waitForExistence(timeout: 2), app.debugDescription)
+        XCTAssertTrue(app.staticTexts["准备产品汇报"].exists)
+        let start = app.buttons["开始这一步"]
+        XCTAssertTrue(start.exists, app.debugDescription)
+
+        start.click()
+        XCTAssertTrue(app.staticTexts["现在就做"].waitForExistence(timeout: 2), app.debugDescription)
+    }
+
+    @MainActor
+    func testReadingToTaskPrefillsAndLinksBack() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing", "--skip-onboarding", "--sample-reader"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["第 1 / 3 段"].waitForExistence(timeout: 3), app.debugDescription)
+        let toTask = app.buttons["转为任务"]
+        XCTAssertTrue(toTask.waitForExistence(timeout: 2), app.debugDescription)
+        toTask.click()
+
+        let editor = app.textViews["任务描述"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 3), app.debugDescription)
+        let prefilled = editor.value as? String ?? ""
+        XCTAssertTrue(prefilled.contains("示例文稿"), "预填任务应包含来源提示：\(prefilled)\n\(app.debugDescription)")
+
+        app.buttons["使用本地拆解"].click()
+        XCTAssertTrue(app.staticTexts["检查步骤"].waitForExistence(timeout: 2), app.debugDescription)
+        app.buttons["保存任务"].click()
+
+        let related = app.buttons["打开相关阅读"]
+        XCTAssertTrue(related.waitForExistence(timeout: 2), app.debugDescription)
+        related.click()
+        XCTAssertTrue(app.staticTexts["第 1 / 3 段"].waitForExistence(timeout: 2), app.debugDescription)
+    }
+
+    @MainActor
+    func testCompactStartHereInsideWindow() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--ui-testing", "--skip-onboarding", "--sample-relay", "--compact-window"]
+        app.launch()
+
+        let window = app.windows.firstMatch
+        XCTAssertTrue(window.waitForExistence(timeout: 3), app.debugDescription)
+        let startHereRadio = app.radioButtons["开始这里"]
+        XCTAssertTrue(startHereRadio.waitForExistence(timeout: 3), app.debugDescription)
+
+        let controls = [
+            startHereRadio,
+            app.buttons["开始这一步"],
+            app.buttons["查看历史"]
+        ]
+        for control in controls {
+            XCTAssertTrue(control.exists, "缺少控件：\(control.label)\n\(app.debugDescription)")
+            XCTAssertTrue(control.isHittable, "控件不可操作：\(control.label)，控件 \(control.frame)，窗口 \(window.frame)\n\(app.debugDescription)")
+            XCTAssertGreaterThanOrEqual(control.frame.minX, window.frame.minX, "\(control.label) 从窗口左侧溢出")
+            XCTAssertLessThanOrEqual(control.frame.maxX, window.frame.maxX, "\(control.label) 从窗口右侧溢出")
+            XCTAssertGreaterThanOrEqual(control.frame.minY, window.frame.minY, "\(control.label) 从窗口顶部溢出")
+            XCTAssertLessThanOrEqual(control.frame.maxY, window.frame.maxY, "\(control.label) 从窗口底部溢出")
+        }
+    }
+
+    @MainActor
     func testAPIKeyFieldSupportsCommandPasteAndPasteButton() throws {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString("sk-ui-test-not-saved", forType: .string)

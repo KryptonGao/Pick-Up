@@ -122,6 +122,14 @@ private struct WorkbenchSidebar: View {
             List(selection: workspaceSelection) {
                 Section("工作台") {
                     SidebarDestinationRow(
+                        title: "开始这里",
+                        subtitle: startHereSubtitle,
+                        symbol: "sunrise",
+                        shortcut: ""
+                    )
+                    .tag(WorkspaceMode.startHere)
+
+                    SidebarDestinationRow(
                         title: "阅读",
                         subtitle: readingSubtitle,
                         symbol: "text.book.closed",
@@ -139,7 +147,7 @@ private struct WorkbenchSidebar: View {
 
                     SidebarDestinationRow(
                         title: "继续",
-                        subtitle: viewModel.recovery.latestOpenCard?.nextAction ?? "恢复上下文与本地历史",
+                        subtitle: viewModel.startHere.thread?.nextAction ?? viewModel.recovery.latestOpenCard?.nextAction ?? "恢复上下文与本地历史",
                         symbol: "clock.arrow.circlepath",
                         shortcut: "⌘3"
                     )
@@ -228,6 +236,14 @@ private struct WorkbenchSidebar: View {
     private var readingSubtitle: String {
         guard let document = viewModel.document else { return "捕获并专注阅读" }
         return "\(document.orderedSegments.count) 个段落"
+    }
+
+    private var startHereSubtitle: String {
+        if let session = viewModel.tasks.focusSession, session.state != .ended {
+            return "正在专注"
+        }
+        guard let thread = viewModel.startHere.thread else { return "从上下文重新开始" }
+        return thread.nextAction
     }
 }
 
@@ -324,6 +340,7 @@ private struct DesktopWorkspaceHeader: View {
 
     private var headerTitle: String {
         switch viewModel.workspaceMode {
+        case .startHere: "开始这里"
         case .reading: "阅读工作台"
         case .tasks: "任务工作台"
         case .history: "继续与历史"
@@ -332,6 +349,7 @@ private struct DesktopWorkspaceHeader: View {
 
     private var headerSubtitle: String {
         switch viewModel.workspaceMode {
+        case .startHere: "从当前上下文重新开始"
         case .reading: "一次专注一段重要内容"
         case .tasks: "把想法变成可以立刻开始的下一步"
         case .history: "快速找回上下文，所有记录默认只在本机"
@@ -366,9 +384,11 @@ private struct WorkspaceDetail: View {
     var body: some View {
         Group {
             if viewModel.workspaceMode == .tasks {
-                TaskWorkbenchView(viewModel: viewModel.tasks)
+                TaskWorkbenchView(viewModel: viewModel.tasks, appViewModel: viewModel)
             } else if viewModel.workspaceMode == .history {
                 Phase3View(viewModel: viewModel.recovery)
+            } else if viewModel.workspaceMode == .startHere, isRestingPhase {
+                StartHereView(viewModel: viewModel)
             } else {
                 readingContent
             }
@@ -378,12 +398,22 @@ private struct WorkspaceDetail: View {
         .pickUpAnimated(for: phaseIdentifier, reduceMotion: reduceMotion)
     }
 
+    private var isRestingPhase: Bool {
+        switch viewModel.phase {
+        case .onboarding, .idle, .reader: true
+        case .capturing, .preview, .overLimit, .failure: false
+        }
+    }
+
     private var phaseIdentifier: String {
         if viewModel.workspaceMode == .tasks {
             return "tasks-\(viewModel.tasks.stage)"
         }
         if viewModel.workspaceMode == .history {
             return "history"
+        }
+        if viewModel.workspaceMode == .startHere {
+            return "startHere"
         }
         return switch viewModel.phase {
         case .onboarding: "onboarding"
@@ -457,7 +487,7 @@ private struct WorkspaceModeBar: View {
         }
         .labelsHidden()
         .pickerStyle(.segmented)
-        .frame(width: 220)
+        .frame(width: 300)
         .accessibilityLabel("工作台模式")
     }
 

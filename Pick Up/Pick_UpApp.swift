@@ -35,13 +35,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 TaskItem.self,
                 TaskStep.self,
                 FocusSession.self,
-                ContinuationCard.self
+                ContinuationCard.self,
+                WorkThread.self
             ])
             let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isUITesting)
             let container = try ModelContainer(for: schema, configurations: [configuration])
             let repository = ReadingRepository(container: container)
             let taskRepository = TaskRepository(container: container)
             let phase3Repository = Phase3Repository(container: container)
+            let workThreadRepository = WorkThreadRepository(container: container)
             let defaults: UserDefaults
             if isUITesting, let suite = UserDefaults(suiteName: "space.chenkai.Pick-Up.UITests") {
                 suite.removePersistentDomain(forName: "space.chenkai.Pick-Up.UITests")
@@ -76,6 +78,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     relatedText: ""
                 )))
             }
+            if arguments.contains("--sample-relay") {
+                let reading = ReadingDocument(
+                    originalText: "产品汇报背景\n\n市场正在从功能竞争转向场景竞争。\n\n用户真正在意的是结果，而不是功能清单。",
+                    source: SourceContext(appName: "Pages", bundleIdentifier: "com.apple.iWork.Pages", processIdentifier: 0, windowTitle: "产品汇报"),
+                    captureMethod: .accessibility,
+                    wasTruncated: false,
+                    segments: TextSegmenter().segment("产品汇报背景\n\n市场正在从功能竞争转向场景竞争。\n\n用户真正在意的是结果，而不是功能清单。").map {
+                        ReadingSegment(order: $0.order, kind: $0.kind, text: $0.text, sourceLocation: $0.sourceLocation, sourceLength: $0.sourceLength)
+                    }
+                )
+                try repository.replace(with: reading)
+                let step = TaskStep(
+                    order: 0,
+                    action: "打开文档，写出 3 条结论",
+                    estimatedMinutes: 10,
+                    materials: ["产品汇报文档"],
+                    completionCriteria: "结论页已有三条可以讨论的要点"
+                )
+                let task = TaskItem(title: "准备产品汇报", planOrigin: .local, steps: [step])
+                try taskRepository.insert(task)
+                let card = ContinuationCard(draft: ContinuationCardDraft(
+                    taskID: task.id,
+                    readingDocumentID: reading.id,
+                    taskTitle: task.title,
+                    completedText: "整理了背景与用户问题",
+                    blockerText: "还缺一个可以落到行动的结论",
+                    nextAction: step.action,
+                    sourceAppName: "Pages",
+                    sourceWindowTitle: "产品汇报",
+                    fileHint: "汇报/产品汇报.pages",
+                    relatedText: reading.orderedSegments.first?.text ?? ""
+                ))
+                try phase3Repository.insert(card)
+                let thread = WorkThread(
+                    title: task.title,
+                    status: .active,
+                    nextAction: step.action,
+                    estimatedMinutes: step.estimatedMinutes,
+                    readingDocumentID: reading.id,
+                    taskID: task.id,
+                    continuationCardID: card.id
+                )
+                try workThreadRepository.insertActive(thread)
+            }
             let viewModel = AppViewModel(
                 repository: repository,
                 selectionCapturer: AccessibilitySelectionCapturer(),
@@ -89,7 +135,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     defaults: defaults,
                     credentials: KeychainCredentialStore()
                 ),
-                phase3Repository: phase3Repository
+                phase3Repository: phase3Repository,
+                workThreadRepository: workThreadRepository
             )
             let windowController = WorkbenchWindowController(viewModel: viewModel)
             let statusController = StatusItemController(viewModel: viewModel)

@@ -27,6 +27,7 @@ final class AppViewModel: ObservableObject {
     let speech: SpeechController
     let tasks: TaskWorkspaceViewModel
     let recovery: Phase3ViewModel
+    let startHere: StartHereViewModel
     let aiSettings: AISettingsStore
     let aiClient: AICompleting
 
@@ -42,6 +43,7 @@ final class AppViewModel: ObservableObject {
     private let defaults: UserDefaults
     private let logger = Logger(subsystem: "space.chenkai.Pick-Up", category: "workflow")
     private var pendingReplacement: CaptureDraft?
+    private var pendingTaskContext: PendingTaskContext?
 
     init(
         repository: ReadingRepositoryProtocol,
@@ -54,7 +56,8 @@ final class AppViewModel: ObservableObject {
         aiClient: AICompleting? = nil,
         aiSettings: AISettingsStore? = nil,
         notificationScheduler: NotificationScheduling? = nil,
-        phase3Repository: Phase3RepositoryProtocol? = nil
+        phase3Repository: Phase3RepositoryProtocol? = nil,
+        workThreadRepository: WorkThreadRepositoryProtocol? = nil
     ) {
         self.repository = repository
         self.selectionCapturer = selectionCapturer
@@ -78,6 +81,8 @@ final class AppViewModel: ObservableObject {
         self.tasks = taskViewModel
         let recoveryViewModel = Phase3ViewModel(repository: phase3Repository ?? TransientPhase3Repository())
         self.recovery = recoveryViewModel
+        let startHereViewModel = StartHereViewModel(repository: workThreadRepository ?? TransientWorkThreadRepository())
+        self.startHere = startHereViewModel
         let loadedDocument = try? repository.loadActive()
         self.document = loadedDocument
         self.keepPanelOnTop = defaults.bool(forKey: "keepPanelOnTop")
@@ -93,14 +98,33 @@ final class AppViewModel: ObservableObject {
         taskViewModel.onContinuationCardRequested = { [weak recoveryViewModel] draft in
             recoveryViewModel?.present(draft)
         }
+        taskViewModel.onTaskCreated = { [weak self] task in
+            self?.relayCreatedTask(task)
+        }
         recoveryViewModel.onResumeCard = { [weak self] card in
             self?.resume(card)
         }
         recoveryViewModel.onHistoryChanged = { [weak self] in
             self?.reloadLocalData()
         }
-        if self.phase != .onboarding, recoveryViewModel.latestOpenCard != nil {
-            self.workspaceMode = .history
+        recoveryViewModel.onCardSaved = { [weak self] card in
+            guard let self else { return }
+            var minutes: Int?
+            if let taskID = card.taskID,
+               let task = self.tasks.tasks.first(where: { $0.id == taskID }) {
+                minutes = task.currentStep?.estimatedMinutes
+            }
+            self.startHere.updateThread(from: card, estimatedMinutes: minutes)
+        }
+        startHereViewModel.onThreadChanged = { [weak self] in
+            self?.objectWillChange.send()
+        }
+        if self.phase != .onboarding {
+            if startHereViewModel.thread != nil {
+                self.workspaceMode = .startHere
+            } else if recoveryViewModel.latestOpenCard != nil {
+                self.workspaceMode = .history
+            }
         }
 
         KeyboardShortcuts.onKeyUp(for: .captureSelection) { [weak self] in
@@ -195,6 +219,7 @@ final class AppViewModel: ObservableObject {
             wasTruncated: false
         )
         draft = candidate
+        workspaceMode = .reading
         phase = payload.text.count > Self.maximumCharacterCount ? .overLimit : .preview
     }
 
@@ -242,9 +267,115 @@ final class AppViewModel: ObservableObject {
     }
 
     func showTasks(createNew: Bool = false) {
+        pendingTaskContext = nil
         workspaceMode = .tasks
         if createNew { tasks.beginCreating() }
         onOpenPanel?()
+    }
+
+    func showStartHere() {
+        startHere.reload()
+        workspaceMode = .startHere
+        onOpenPanel?()
+    }
+
+    func prepareTaskFromReading(selected: String) {
+        guard let document else { return }
+        let clean = selected.trimmingCharacters(in: .whitespacesAndNewlines)
+        let contextText = clean.isEmpty ? (currentSegment?.text ?? "") : clean
+        let highlightedCount = document.orderedSegments.count(where: \.isHighlighted)
+        showTasks()
+        pendingTaskContext = PendingTaskContext(readingDocumentID: document.id)
+        tasks.beginCreating()
+        let hint = highlightedCount > 0 ? "（已标记 \(highlightedCount) 处重点）" : ""
+        let sourceTitle = document.sourceWindowTitle?.isEmpty == false ? document.sourceWindowTitle! : document.sourceAppName
+        tasks.taskInput = contextText.isEmpty
+            ? "基于「\(sourceTitle)」的阅读内容\(hint)，完成一件可以开始的事"
+            : "基于「\(sourceTitle)」的阅读内容\(hint)，完成：\(String(contextText.prefix(120)))"
+    }
+
+    private func relayCreatedTask(_ task: TaskItem) {
+        guard let context = pendingTaskContext else { return }
+        pendingTaskContext = nil
+        let nextAction = task.currentStep?.action ?? "回顾任务并开始下一步"
+        let estimated = task.currentStep?.estimatedMinutes
+        startHere.linkTaskAndReading(
+            taskID: task.id,
+            readingDocumentID: context.readingDocumentID,
+            title: task.title,
+            nextAction: nextAction,
+            estimatedMinutes: estimated
+        )
+    }
+
+    func beginFromStartHere() {
+        if let session = tasks.focusSession, session.state != .ended {
+            guard let task = tasks.tasks.first(where: { $0.id == session.taskID }) else {
+                recovery.reload()
+                workspaceMode = .history
+                return
+            }
+            tasks.selectedTaskID = task.id
+            if task.status == .paused { tasks.resumeTask() }
+            workspaceMode = .tasks
+            return
+        }
+        guard let thread = startHere.thread else {
+            workspaceMode = .reading
+            return
+        }
+        if let taskID = thread.taskID,
+           let task = tasks.tasks.first(where: { $0.id == taskID }) {
+            tasks.selectedTaskID = task.id
+            if task.status == .paused { tasks.resumeTask() }
+            workspaceMode = .tasks
+        } else if let documentID = thread.readingDocumentID,
+                  let restored = try? repository.activate(id: documentID) {
+            document = restored
+            phase = .reader
+            workspaceMode = .reading
+        } else {
+            recovery.reload()
+            workspaceMode = .history
+        }
+    }
+
+    func openSourceFromStartHere() {
+        guard let thread = startHere.thread else { return }
+        if let documentID = thread.readingDocumentID,
+           let restored = try? repository.activate(id: documentID) {
+            document = restored
+            phase = .reader
+            workspaceMode = .reading
+        } else if let taskID = thread.taskID,
+                  let task = tasks.tasks.first(where: { $0.id == taskID }) {
+            tasks.selectedTaskID = task.id
+            workspaceMode = .tasks
+        } else {
+            recovery.reload()
+            workspaceMode = .history
+        }
+    }
+
+    func relatedReadingDocumentID(for taskID: UUID) -> UUID? {
+        guard let thread = startHere.thread, thread.taskID == taskID else { return nil }
+        return thread.readingDocumentID
+    }
+
+    func readingDocument(_ id: UUID) -> ReadingDocument? {
+        try? repository.document(id: id)
+    }
+
+    func openReadingDocument(_ id: UUID) {
+        guard let restored = try? repository.activate(id: id) else {
+            recovery.errorMessage = "原阅读记录已不存在；可以在历史中查看已保存的文字。"
+            recovery.reload()
+            workspaceMode = .history
+            return
+        }
+        document = restored
+        phase = .reader
+        workspaceMode = .reading
     }
 
     func showReadingWorkspace() {
@@ -296,6 +427,7 @@ final class AppViewModel: ObservableObject {
         if document == nil, workspaceMode == .reading { phase = .idle }
         tasks.syncAfterHistoryChanged()
         recovery.reload()
+        startHere.reload()
     }
 
     func newCapture() {
@@ -387,4 +519,8 @@ final class AppViewModel: ObservableObject {
             phase = .failure(.unknown)
         }
     }
+}
+
+private struct PendingTaskContext {
+    let readingDocumentID: UUID
 }

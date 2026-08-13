@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 
 enum WorkspaceMode: String, CaseIterable, Identifiable {
+    case startHere
     case reading
     case tasks
     case history
@@ -10,6 +11,7 @@ enum WorkspaceMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
+        case .startHere: "开始这里"
         case .reading: "阅读"
         case .tasks: "任务"
         case .history: "继续"

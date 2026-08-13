@@ -17,6 +17,7 @@ final class Phase3ViewModel: ObservableObject {
 
     var onResumeCard: ((ContinuationCard) -> Void)?
     var onHistoryChanged: (() -> Void)?
+    var onCardSaved: ((ContinuationCard) -> Void)?
 
     private let repository: Phase3RepositoryProtocol
     private let logger = Logger(subsystem: "space.chenkai.Pick-Up", category: "recovery")
@@ -63,6 +64,7 @@ final class Phase3ViewModel: ObservableObject {
             pendingDraft = nil
             reload(selecting: "\(HistoryRecordKind.continuation.rawValue)-\(card.id.uuidString)")
             statusMessage = "继续卡片已保存在本机。"
+            onCardSaved?(card)
         } catch {
             logger.error("card save failed: \(String(describing: error), privacy: .public)")
             errorMessage = "卡片没有保存成功，编辑内容仍然保留。"
