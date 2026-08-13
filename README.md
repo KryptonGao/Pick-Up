@@ -33,6 +33,12 @@ Pick Up 面向“知道要做什么，但启动很困难”的阅读和工作场
 | 专注 | 以当前步骤为中心启动计时，可暂停、恢复、延长、提前结束并复盘结果；结束时可生成继续卡片。 |
 | 继续与历史 | 搜索本地保存的文本、任务、专注记录和继续卡片，并导出 Markdown、纯文本或 JSON。 |
 
+## 屏幕截图
+
+<img width="1126" height="776" alt="截圖 2026-08-13 12 35 05" src="https://github.com/user-attachments/assets/f1417a44-fdf8-4785-8bbf-933f0a1992cb" />
+<img width="1126" height="776" alt="截圖 2026-08-13 12 34 21" src="https://github.com/user-attachments/assets/91f53bf1-1aac-46da-b792-8a644f2eb68f" />
+<img width="1126" height="788" alt="截圖 2026-08-13 12 35 20" src="https://github.com/user-attachments/assets/de721705-1b6e-4faa-896e-54b5ea5cea67" />
+
 ## 快速开始
 
 仓库当前提供 Xcode 项目源代码，尚未包含预构建安装包。
