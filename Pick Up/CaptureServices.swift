@@ -137,8 +137,28 @@ final class AccessibilitySelectionCapturer: SelectionCapturing, @unchecked Senda
 
 @MainActor
 final class PasteboardCaptureService: ClipboardCapturing {
+    private let pasteboard: NSPasteboard
+    private let copyTimeout: Duration
+    private let lateCopyObservationWindow: Duration
+    private let pollingInterval: Duration
+    private let postCopyCommand: @MainActor () -> Bool
+
+    init(
+        pasteboard: NSPasteboard = .general,
+        copyTimeout: Duration = .milliseconds(800),
+        lateCopyObservationWindow: Duration = .milliseconds(400),
+        pollingInterval: Duration = .milliseconds(50),
+        postCopyCommand: @escaping @MainActor () -> Bool = PasteboardCaptureService.postCopyCommand
+    ) {
+        self.pasteboard = pasteboard
+        self.copyTimeout = copyTimeout
+        self.lateCopyObservationWindow = lateCopyObservationWindow
+        self.pollingInterval = pollingInterval
+        self.postCopyCommand = postCopyCommand
+    }
+
     func captureCurrent(source: SourceContext) -> CaptureResult {
-        guard let text = NSPasteboard.general.string(forType: .string),
+        guard let text = pasteboard.string(forType: .string),
               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return .failure(.clipboardEmpty)
         }
@@ -148,25 +168,38 @@ final class PasteboardCaptureService: ClipboardCapturing {
     }
 
     func captureByCopying(source: SourceContext) async -> CaptureResult {
-        let pasteboard = NSPasteboard.general
         let snapshot = PasteboardSnapshot(pasteboard: pasteboard)
         let initialChangeCount = pasteboard.changeCount
+        var copiedChangeCount: Int?
+
+        defer {
+            if let copiedChangeCount {
+                _ = snapshot.restore(to: pasteboard, ifChangeCountIs: copiedChangeCount)
+            }
+        }
 
         guard postCopyCommand() else { return .failure(.unknown) }
 
-        let deadline = ContinuousClock.now.advanced(by: .milliseconds(800))
-        while pasteboard.changeCount == initialChangeCount, ContinuousClock.now < deadline {
-            try? await Task.sleep(for: .milliseconds(50))
+        copiedChangeCount = await waitForChange(
+            after: initialChangeCount,
+            for: copyTimeout
+        )
+
+        if copiedChangeCount == nil {
+            // The key event can be delivered after the target app's main thread
+            // has had time to process it. Keep the request alive long enough to
+            // observe that late write and restore the snapshot before returning.
+            copiedChangeCount = await waitForChange(
+                after: initialChangeCount,
+                for: lateCopyObservationWindow
+            )
         }
 
-        guard pasteboard.changeCount != initialChangeCount else {
+        guard copiedChangeCount != nil else {
             return .failure(.clipboardUnchanged)
         }
 
-        let copiedChangeCount = pasteboard.changeCount
         let text = pasteboard.string(forType: .string)
-
-        _ = snapshot.restore(to: pasteboard, ifChangeCountIs: copiedChangeCount)
 
         guard let text,
               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -177,7 +210,28 @@ final class PasteboardCaptureService: ClipboardCapturing {
         )
     }
 
-    private func postCopyCommand() -> Bool {
+    private func waitForChange(after initialChangeCount: Int, for duration: Duration) async -> Int? {
+        let deadline = ContinuousClock.now.advanced(by: duration)
+        while ContinuousClock.now < deadline {
+            let changeCount = pasteboard.changeCount
+            if changeCount != initialChangeCount {
+                return changeCount
+            }
+            await sleepIgnoringCancellation(for: pollingInterval)
+        }
+
+        let finalChangeCount = pasteboard.changeCount
+        return finalChangeCount == initialChangeCount ? nil : finalChangeCount
+    }
+
+    private func sleepIgnoringCancellation(for duration: Duration) async {
+        let sleeper = Task.detached {
+            try? await Task.sleep(for: duration)
+        }
+        await sleeper.value
+    }
+
+    private static func postCopyCommand() -> Bool {
         guard let source = CGEventSource(stateID: .combinedSessionState),
               let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: true),
               let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 8, keyDown: false) else {
