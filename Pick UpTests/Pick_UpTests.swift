@@ -102,6 +102,80 @@ struct PasteboardSnapshotTests {
     }
 }
 
+@Suite("自动复制生命周期", .serialized)
+@MainActor
+struct PasteboardCaptureServiceTests {
+    @Test("复制晚到初始超时后仍会恢复原剪贴板")
+    func restoresClipboardWhenCopyArrivesLate() async {
+        let pasteboard = NSPasteboard.withUniqueName()
+        pasteboard.setString("原文本", forType: .string)
+        let source = SourceContext(
+            appName: "测试 App",
+            bundleIdentifier: "space.chenkai.test",
+            processIdentifier: 0,
+            windowTitle: nil
+        )
+        let service = PasteboardCaptureService(
+            pasteboard: pasteboard,
+            copyTimeout: .milliseconds(20),
+            lateCopyObservationWindow: .milliseconds(300),
+            pollingInterval: .milliseconds(5),
+            postCopyCommand: {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(80))
+                    pasteboard.clearContents()
+                    pasteboard.setString("晚到文本", forType: .string)
+                }
+                return true
+            }
+        )
+
+        let result = await service.captureByCopying(source: source)
+
+        guard case .success(let payload) = result else {
+            #expect(Bool(false), "晚到的复制应当被捕获")
+            return
+        }
+        #expect(payload.text == "晚到文本")
+        #expect(payload.method == .automaticClipboard)
+        #expect(pasteboard.string(forType: .string) == "原文本")
+    }
+
+    @Test("取消请求时也会完成晚到复制的清理")
+    func cancellationStillRestoresClipboard() async {
+        let pasteboard = NSPasteboard.withUniqueName()
+        pasteboard.setString("原文本", forType: .string)
+        let service = PasteboardCaptureService(
+            pasteboard: pasteboard,
+            copyTimeout: .milliseconds(20),
+            lateCopyObservationWindow: .milliseconds(300),
+            pollingInterval: .milliseconds(5),
+            postCopyCommand: {
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(80))
+                    pasteboard.clearContents()
+                    pasteboard.setString("取消后晚到文本", forType: .string)
+                }
+                return true
+            }
+        )
+
+        let captureTask = Task { @MainActor in
+            await service.captureByCopying(source: .unknown)
+        }
+        try? await Task.sleep(for: .milliseconds(10))
+        captureTask.cancel()
+        let result = await captureTask.value
+
+        guard case .success(let payload) = result else {
+            #expect(Bool(false), "取消不应跳过复制生命周期的清理")
+            return
+        }
+        #expect(payload.text == "取消后晚到文本")
+        #expect(pasteboard.string(forType: .string) == "原文本")
+    }
+}
+
 @Suite("本地阅读仓库", .serialized)
 @MainActor
 struct ReadingRepositoryTests {
